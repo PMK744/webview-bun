@@ -158,10 +158,11 @@ export class Webview {
     },
     window: Pointer | null = null,
   ) {
-    this.#handle =
+    const handle =
       typeof debugOrHandle === "bigint" || typeof debugOrHandle === "number"
         ? debugOrHandle
         : lib.symbols.webview_create(Number(debugOrHandle), window);
+    this.#handle = (handle === null ? null : Number(handle)) as Pointer;
     if (size !== undefined) this.size = size;
     queueMicrotask(() => this.#applyEmbeddedExecutableIcon());
     instances.push(this);
@@ -273,7 +274,7 @@ export class Webview {
    */
   runNonBlocking(onClose?: () => void): void {
     const step = () => {
-      if (this.pump(false)) setTimeout(step, 0);
+      if (this.pump(false)) setImmediate(step);
       else {
         this.destroy();
         onClose?.()
